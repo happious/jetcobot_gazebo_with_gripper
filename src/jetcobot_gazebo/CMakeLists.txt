@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.8)
+project(jetcobot_gazebo)
+find_package(ament_cmake REQUIRED)
+install(DIRECTORY launch config worlds urdf models DESTINATION share/jetcobot_gazebo)
+ament_package()
