@@ -1,129 +1,122 @@
 # JetCobot Gazebo + MoveIt 2
 
-Ubuntu 24.04 / ROS 2 Jazzy / Gazebo Harmonic에서 JetCobot 로봇팔을 움직이기 위한 소스 패키지 모음입니다. 로봇 메시, 6축 관절 컨트롤러, MoveIt 설정, 고정 베이스, 테이블·큐브 모델과 손목 RGB 카메라를 포함합니다.
+고정된 6축 로봇팔과 **실제로 열고 닫히는 물리 집게**를 Gazebo에서 조작하는 ROS 2 작업공간입니다. 기본 실행은 홈 자세에서 대기합니다. 자동 픽업은 별도 명령으로만 시작합니다.
 
-## 폴더 구성
+## 환경 및 설치
 
-| 경로 | 역할 |
-|---|---|
-| src/jetcobot_description | 로봇 URDF와 STL/DAE 메시 |
-| src/jetcobot_moveit_config | MoveIt 계획·실행, SRDF, RViz 설정 |
-| src/jetcobot_gazebo | Gazebo 런치, 컨트롤러, 월드, 테이블·큐브·카메라 모델 |
+Ubuntu 24.04 / ROS 2 Jazzy / Gazebo Harmonic 기준입니다. GUI 사용에는 OpenGL이 가능한 Linux 데스크톱이 필요합니다. ROS가 없다면 [Jazzy 공식 설치 안내](https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debs.html)에 따라 desktop 버전을 먼저 설치하세요. [Gazebo 공식 호환 안내](https://gazebosim.org/docs/harmonic/)도 참고하세요.
 
-실물용 jetcobot_bringup, Pinky 패키지, build/install/log, 과거 백업은 필요하지 않아 제외했습니다. 별도의 원본 저장소 clone 없이 이 저장소만 빌드하면 됩니다. 사용자별 메시·컨트롤러 경로는 런치가 설치 위치에서 결정합니다.
+다른 ROS 작업공간이 자동 source되지 않는 새 터미널에서 실행합니다.
 
-## 1. 설치
-
-Ubuntu 24.04에 ROS 2 Jazzy가 설치된 환경에서 실행합니다.
-
-~~~bash
+```bash
 source /opt/ros/jazzy/setup.bash
 sudo apt update
 sudo apt install -y git python3-colcon-common-extensions python3-rosdep \
-  ros-jazzy-moveit ros-jazzy-ros2-control ros-jazzy-ros2-controllers \
-  ros-jazzy-ros-gz ros-jazzy-gz-ros2-control ros-jazzy-xacro \
-  ros-jazzy-rqt-image-view liburdfdom-tools
+  ros-jazzy-moveit ros-jazzy-ros-gz ros-jazzy-gz-ros2-control \
+  ros-jazzy-ros2-controllers ros-jazzy-gz-physics-vendor \
+  ros-jazzy-gz-transport-vendor ros-jazzy-gz-msgs-vendor
 
-# rosdep가 초기화되지 않은 경우에만 실행
+# rosdep가 이미 초기화됐다면 건너뜁니다.
 if [ ! -f /etc/ros/rosdep/sources.list.d/20-default.list ]; then
   sudo rosdep init
 fi
 rosdep update
 
-git clone https://github.com/happious/jetcobot_gazebo.git ~/jetcobot_ws
+git clone https://github.com/happious/jetcobot_gazebo_with_gripper.git ~/jetcobot_ws
 cd ~/jetcobot_ws
-rosdep install --from-paths src --ignore-src -r -y --rosdistro jazzy
+rosdep install --from-paths src --ignore-src -y --rosdistro jazzy
 colcon build --symlink-install
 source install/setup.bash
-~~~
+```
 
-이후 새 터미널마다 아래 환경을 불러옵니다.
+별도의 원본 저장소 clone이나 사용자별 모델 경로 수정은 필요하지 않습니다. 새 터미널마다 다음을 실행하세요. 경로는 실제 clone 위치에 맞추면 됩니다.
 
-~~~bash
+```bash
 source /opt/ros/jazzy/setup.bash
 source ~/jetcobot_ws/install/setup.bash
-~~~
+```
 
-## 2. 실행
+## 1. 로봇팔만 켜기 — 기본 사용
 
-권장: 테이블 위 고정 로봇팔 + 큐브 + 손목 카메라 + MoveIt + RViz.
+```bash
+ros2 launch jetcobot_gazebo robot_only.launch.py
+```
 
-~~~bash
-ros2 launch jetcobot_gazebo table_scene.launch.py
-~~~
+Gazebo, MoveIt, RViz가 함께 실행됩니다. 지면·고정 받침대와 로봇팔이 있고 상자는 없습니다. 베이스는 world에 fixed joint로 고정되고 팔과 집게 관절은 움직입니다. 팔은 home, 집게는 열린 상태로 시작합니다. 첫 실행은 집게 충돌 형상 분해 때문에 시간이 걸릴 수 있습니다.
 
-RViz의 MotionPlanning에서 Planning Group을 arm_group으로 선택하고 목표 자세를 조금 이동한 뒤 Plan → Execute를 누릅니다. Gazebo의 로봇팔도 따라 움직입니다. 종료는 실행 터미널에서 Ctrl+C입니다.
+RViz의 MotionPlanning 패널에서:
 
-다른 장면은 앞선 실행을 종료한 뒤 시작합니다.
+1. Planning Group을 `arm_group`으로 선택합니다.
+2. Goal State에 `home` 또는 다른 저장 자세를 선택하거나 목표 위치 표시를 드래그합니다.
+3. Plan으로 경로를 확인한 뒤 Execute를 누릅니다.
+4. 집게는 Planning Group을 `gripper_group`으로 바꾸고 Goal State의 `open` / `closed`를 선택한 뒤 Plan → Execute로 조작합니다.
 
-~~~bash
-# 빈 월드에 고정 베이스 로봇 + MoveIt/RViz
-ros2 launch jetcobot_gazebo fixed_base.launch.py moveit:=true
+home은 `[0, 0, 0, 0, 0, -0.7854]` rad입니다. 하드웨어 원점 탐색 기능은 아닙니다. 집게 목표는 open=0.12rad, closed=-0.45rad이며 closed가 간격 0mm를 의미하지는 않습니다. 실제 각도는 접촉과 구동 힘의 영향을 받습니다.
 
-# 테이블·큐브만 표시
-ros2 launch jetcobot_gazebo table_scene.launch.py robot:=false
+## 2. 상자 포함 수동 조작
 
-# GUI 없이 테이블 장면 실행 (MoveIt은 유지)
-ros2 launch jetcobot_gazebo table_scene.launch.py gui:=false rviz:=false
+기존 launch를 Ctrl+C로 종료한 뒤 실행합니다.
 
-# MoveIt/RViz 없이 테이블 장면 실행
-ros2 launch jetcobot_gazebo table_scene.launch.py moveit:=false rviz:=false
-~~~
+```bash
+ros2 launch jetcobot_gazebo grasp_test.launch.py
+```
 
-일반 gazebo.launch.py도 포함하지만 베이스가 고정되지 않은 실험용 장면입니다. 안정적인 관절 동작에는 fixed_base.launch.py 또는 table_scene.launch.py를 권장합니다. 테이블 런치의 robot/gui/moveit/rviz 기본값은 모두 true입니다. robot:=false이면 로봇 관련 노드를 시작하지 않습니다.
+같은 로봇팔과 70×30×40mm, 40g 상자 하나가 나타납니다. 홈 자세에서 대기하고 자동으로 잡거나 들어 올리지 않습니다. Gazebo 물체는 MoveIt 충돌 장면에 자동 등록되지 않습니다. 아래 자동 시험은 별도로 지면·받침대·상자를 MoveIt에 등록합니다.
 
-Gazebo 런치는 robot_state_publisher, /clock 브리지, joint_state_broadcaster, arm_group_controller를 자동으로 시작합니다. 같은 ROS 도메인에서 demo.launch.py나 다른 Gazebo 로봇 런치를 동시에 실행하면 컨트롤러가 충돌할 수 있습니다.
+## 3. 자동 픽업 시험
 
-## 3. 관절 직접 움직이기
+`grasp_test.launch.py`를 새로 켠 초기 상태에서, 다른 터미널에 환경을 불러온 다음 실행합니다. 시험 도중 RViz에서 별도 명령을 보내지 마세요.
 
-장면 실행을 유지하고 새 터미널에서 환경을 불러온 뒤 실행합니다. 아래 목표는 라디안이며 1번 관절을 0.2 rad로, 나머지를 0으로 이동합니다.
+```bash
+ros2 run jetcobot_gazebo physical_grasp_test.py
+```
 
-~~~bash
+열기 → 접근 → 닫기 → 80mm 상승 → 약 2초 유지 → 하강 → 해제 확인 → 후퇴를 수행합니다. 실제 접촉과 마찰을 사용하며 상자를 강제로 부착하거나 이동시키지 않습니다.
+
+결과는 `/tmp/physical_grasp_result.json`의 `success`, `error`, 단계별 측정값으로 확인합니다. 재시험은 launch를 완전히 종료하고 새 월드에서 진행합니다.
+
+```bash
+ros2 run jetcobot_gazebo physical_grasp_test.py --ros-args \
+  -p report:=/tmp/my_grasp_result.json
+```
+
+이번 정리본은 headless 환경에서 MoveIt 팔·집게 실행과 자동 파지 전체 동작을 1회 통과했습니다. 자세한 범위와 측정값은 [검증 기록](docs/VALIDATION.md)에 있습니다.
+
+과거 원 작업공간에서는 30mm 폭 상자가 새 월드 2회 통과했습니다. 40mm 폭은 반복 안정 파지에 실패했습니다. 시뮬레이션 기록이며 다른 PC에서의 반복 성공이나 실물 성능을 보장하는 수치는 아닙니다.
+
+## 실행 옵션 및 문제 확인
+
+```bash
+# GUI 없이 서버와 MoveIt 실행
+ros2 launch jetcobot_gazebo robot_only.launch.py gui:=false rviz:=false
+
+# Gazebo GUI만 표시하고 RViz 생략
+ros2 launch jetcobot_gazebo grasp_test.launch.py rviz:=false
+
 ros2 control list_controllers
 ros2 topic echo /joint_states --once
-ros2 action send_goal /arm_group_controller/follow_joint_trajectory \
-  control_msgs/action/FollowJointTrajectory \
-  "{trajectory: {joint_names: ['1_Joint', '2_Joint', '3_Joint', '4_Joint', '5_Joint', '6_Joint'], points: [{positions: [0.2, 0.0, 0.0, 0.0, 0.0, 0.0], time_from_start: {sec: 3, nanosec: 0}}]}}" --feedback
-~~~
-
-두 컨트롤러가 active이고 결과 error_code가 0이면 정상입니다.
-
-## 4. 손목 카메라
-
-테이블 로봇 장면에서 활성화됩니다. RGB 640×480, 시뮬레이션 시간 기준 15Hz이며 깊이 센서는 아닙니다.
-
-~~~bash
-ros2 run rqt_image_view rqt_image_view /jetcobot/camera/image_raw
-ros2 topic echo /jetcobot/camera/camera_info --once
-~~~
-
-RViz에서도 Image 표시를 추가해 /jetcobot/camera/image_raw를 선택할 수 있습니다. 카메라는 손목을 따라 움직이며 초기 자세에서 큐브를 향하지 않을 수 있습니다. 광학 프레임은 wrist_camera_optical_frame입니다. gui:=false에서도 카메라 렌더링에는 EGL/OpenGL 환경이 필요합니다.
-
-## 문제 해결
-
-| 증상 | 확인할 내용 |
-|---|---|
-| 패키지를 찾지 못함 | 빌드 성공 여부, source ~/jetcobot_ws/install/setup.bash |
-| 컨트롤러 대기가 계속됨 | Gazebo 로그의 gz_ros2_control 플러그인 오류, 설치된 ros-jazzy-gz-ros2-control |
-| Plan 성공, Execute 실패 | 두 컨트롤러 active, /joint_states와 /clock 수신, 중복 실행 여부 |
-| 현재 관절 상태를 받지 못함 | ros2 topic info /joint_states, joint_state_broadcaster의 use_local_topics=false |
-| 화면이나 카메라가 검게 나옴 | GPU/EGL/OpenGL 및 디스플레이 환경, headless 실행 옵션 |
-| 모델 파일을 찾지 못함 | 저장소의 meshes/models 포함 여부, 다시 빌드 후 환경 source |
-
-~~~bash
-ros2 control list_controllers
 ros2 topic echo /clock --once
-ros2 topic info /joint_states
-ros2 param get /move_group use_sim_time
-~~~
+```
 
-큐브는 Gazebo 물리 물체이며 MoveIt planning scene에 자동 등록되지 않습니다. 자동 파지, 큐브 인식, 실물 제어는 포함하지 않습니다. 카메라 위치·내부 파라미터와 제어 effort/velocity는 시뮬레이션용 설정입니다.
+`joint_state_broadcaster`, `arm_group_controller`, `gripper_group_controller`가 active여야 합니다.
 
-## 출처 및 상세 문서
+| 증상 | 확인 |
+|---|---|
+| 패키지를 찾지 못함 | 빌드 성공과 install/setup.bash source |
+| 다른 모델이 실행됨 | overlay를 정리하고 `ros2 pkg prefix jetcobot_gazebo` 확인 |
+| 컨트롤러 생성 대기 | Gazebo 물리 엔진·gz_ros2_control 오류와 중복 launch 확인 |
+| 집게가 덜 닫힘 | 목표 -0.45rad와 실제 joint_states 비교. 접촉·구동 힘 확인 |
+| Plan 성공, Execute 실패 | controller active, /clock, /joint_states, 중복 명령 확인 |
+| gz.transport13 / gz.msgs10 import 실패 | ROS source와 vendor 패키지 설치 확인. 시스템 python3 사용 |
+| Bullet Featherstone 로딩 실패 | gz-physics-vendor 설치와 ROS/Gazebo 버전 확인 |
+| GUI 표시 실패 | DISPLAY와 GPU/OpenGL 환경 확인 |
 
-- 로봇 및 MoveIt 원본: https://github.com/kemjensak/jetcobot_ros2
-- [Gazebo 런치 상세](src/jetcobot_gazebo/README.md)
-- [테이블·큐브·카메라 상세](src/jetcobot_gazebo/README.table_scene.md)
-- 원본 저장소의 LICENSE 및 각 package.xml의 라이선스 선언을 함께 보존했습니다. 모델·텍스처의 추가 출처/이용 조건은 원본 자산을 확인하세요.
+한 번에 하나의 로봇 launch만 실행하세요. 자동 시험은 해당 터미널에서 Ctrl+C, 전체 시뮬레이션은 launch 터미널에서 Ctrl+C로 종료합니다.
 
-원 작업공간의 기존 기록에는 헤드리스 관절 이동, MoveIt 실행, 고정 베이스 및 카메라 수신 검증이 포함되어 있습니다. 이 저장소 구성에 대한 새 검증 결과는 검증 기록 문서를 참고하세요.
+## 코드 및 출처
+
+- [심화 README: GPT용 구조·인터페이스·파지 구현](README.advanced.md)
+- [이번 배포 구성의 검증 기록](docs/VALIDATION.md)
+- 원본 로봇 자산·MoveIt 설정: [kemjensak/jetcobot_ros2](https://github.com/kemjensak/jetcobot_ros2). 기존 LICENSE와 패키지별 라이선스 선언을 보존했습니다. 원본 description 패키지의 라이선스 표기는 미정(TODO) 상태입니다.
+
+실물 bringup, 강화학습, 카메라 데모, 팔레타이징, 강제 부착 플러그인, 과거 시험 로그는 배포 대상에서 제외했습니다. 기본 실행 모델은 `jetcobot_articulated.urdf`입니다.

@@ -1,0 +1,109 @@
+<?xml version='1.0' encoding='utf-8'?>
+<robot name="jetcobot">
+  <group name="arm_group">
+    <chain base_link="base_link" tip_link="TCP" />
+  </group>
+  <group name="gripper_group">
+    <joint name="gripper_controller" />
+    <joint name="gripper_base_to_gripper_left2" />
+    <joint name="gripper_left3_to_gripper_left1" />
+    <joint name="gripper_base_to_gripper_right3" />
+    <joint name="gripper_base_to_gripper_right2" />
+    <joint name="gripper_right3_to_gripper_right1" />
+  </group>
+  <group_state name="home" group="arm_group">
+    <joint name="1_Joint" value="0" />
+    <joint name="2_Joint" value="0" />
+    <joint name="3_Joint" value="0" />
+    <joint name="4_Joint" value="0" />
+    <joint name="5_Joint" value="0" />
+    <joint name="6_Joint" value="-0.7854" />
+  </group_state>
+  <group_state name="ready_to_see" group="arm_group">
+    <joint name="1_Joint" value="0" />
+    <joint name="2_Joint" value="0.7854" />
+    <joint name="3_Joint" value="-1.4835" />
+    <joint name="4_Joint" value="-0.4363" />
+    <joint name="5_Joint" value="0" />
+    <joint name="6_Joint" value="-0.7854" />
+  </group_state>
+  <group_state name="ready_to_grab" group="arm_group">
+    <joint name="1_Joint" value="0" />
+    <joint name="2_Joint" value="-0.5236" />
+    <joint name="3_Joint" value="-0.5236" />
+    <joint name="4_Joint" value="-0.5236" />
+    <joint name="5_Joint" value="0" />
+    <joint name="6_Joint" value="-0.7854" />
+  </group_state>
+  <group_state name="scan_front" group="arm_group">
+    <joint name="1_Joint" value="0" />
+    <joint name="2_Joint" value="0.5236" />
+    <joint name="3_Joint" value="-0.349066" />
+    <joint name="4_Joint" value="-1.39626" />
+    <joint name="5_Joint" value="0" />
+    <joint name="6_Joint" value="-0.7854" />
+  </group_state>
+  <group_state name="scan_left" group="arm_group">
+    <joint name="1_Joint" value="1.5708" />
+    <joint name="2_Joint" value="0.5236" />
+    <joint name="3_Joint" value="-0.349066" />
+    <joint name="4_Joint" value="-1.39626" />
+    <joint name="5_Joint" value="0" />
+    <joint name="6_Joint" value="-0.7854" />
+  </group_state>
+  <group_state name="scan_right" group="arm_group">
+    <joint name="1_Joint" value="-1.5708" />
+    <joint name="2_Joint" value="0.5236" />
+    <joint name="3_Joint" value="-0.349066" />
+    <joint name="4_Joint" value="-1.39626" />
+    <joint name="5_Joint" value="0" />
+    <joint name="6_Joint" value="-0.7854" />
+  </group_state>
+  <end_effector name="gripper" parent_link="6_Link" group="gripper_group" />
+  <disable_collisions link1="1_Link" link2="2_Link" reason="Adjacent" />
+  <disable_collisions link1="1_Link" link2="4_Link" reason="Never" />
+  <disable_collisions link1="1_Link" link2="base_link" reason="Adjacent" />
+  <disable_collisions link1="2_Link" link2="3_Link" reason="Adjacent" />
+  <disable_collisions link1="2_Link" link2="4_Link" reason="Never" />
+  <disable_collisions link1="3_Link" link2="4_Link" reason="Adjacent" />
+  <disable_collisions link1="3_Link" link2="5_Link" reason="Never" />
+  <disable_collisions link1="4_Link" link2="5_Link" reason="Adjacent" />
+  <disable_collisions link1="4_Link" link2="6_Link" reason="Never" />
+  <disable_collisions link1="4_Link" link2="jetcocam" reason="Never" />
+  <disable_collisions link1="5_Link" link2="6_Link" reason="Adjacent" />
+  <disable_collisions link1="5_Link" link2="jetcocam" reason="Never" />
+  <disable_collisions link1="6_Link" link2="jetcocam" reason="Adjacent" />
+  <group_state name="open" group="gripper_group">
+    <joint name="gripper_controller" value="0.12" />
+  </group_state>
+  <group_state name="closed" group="gripper_group">
+    <joint name="gripper_controller" value="-0.45" />
+  </group_state>
+  <disable_collisions link1="world" link2="dummy" reason="Adjacent" />
+  <disable_collisions link1="dummy" link2="base_link" reason="Adjacent" />
+  <disable_collisions link1="6_Link" link2="gripper_base" reason="Adjacent" />
+  <disable_collisions link1="gripper_base" link2="gripper_left3" reason="Adjacent" />
+  <disable_collisions link1="gripper_base" link2="gripper_left2" reason="Adjacent" />
+  <disable_collisions link1="gripper_left3" link2="gripper_left1" reason="Adjacent" />
+  <disable_collisions link1="gripper_base" link2="gripper_right3" reason="Adjacent" />
+  <disable_collisions link1="gripper_base" link2="gripper_right2" reason="Adjacent" />
+  <disable_collisions link1="gripper_right3" link2="gripper_right1" reason="Adjacent" />
+  <disable_collisions link1="gripper_base" link2="TCP" reason="Adjacent" />
+  <disable_collisions link1="gripper_left1" link2="gripper_base" reason="CoupledLinkage" />
+  <disable_collisions link1="gripper_left2" link2="gripper_left1" reason="CoupledLinkage" />
+  <disable_collisions link1="gripper_left3" link2="gripper_left2" reason="CoupledLinkage" />
+  <disable_collisions link1="gripper_right1" link2="gripper_base" reason="CoupledLinkage" />
+  <disable_collisions link1="gripper_right1" link2="gripper_left1" reason="CoupledLinkage" />
+  <disable_collisions link1="gripper_right1" link2="gripper_left2" reason="CoupledLinkage" />
+  <disable_collisions link1="gripper_right1" link2="gripper_left3" reason="CoupledLinkage" />
+  <disable_collisions link1="gripper_right2" link2="gripper_left1" reason="CoupledLinkage" />
+  <disable_collisions link1="gripper_right2" link2="gripper_left2" reason="CoupledLinkage" />
+  <disable_collisions link1="gripper_right2" link2="gripper_left3" reason="CoupledLinkage" />
+  <disable_collisions link1="gripper_right2" link2="gripper_right1" reason="CoupledLinkage" />
+  <disable_collisions link1="gripper_right3" link2="gripper_left1" reason="CoupledLinkage" />
+  <disable_collisions link1="gripper_right3" link2="gripper_left2" reason="CoupledLinkage" />
+  <disable_collisions link1="gripper_right3" link2="gripper_left3" reason="CoupledLinkage" />
+  <disable_collisions link1="gripper_right3" link2="gripper_right2" reason="CoupledLinkage" />
+  <disable_collisions link1="gripper_base" link2="jetcocam" reason="AdjacentMount" />
+  <disable_collisions link1="gripper_base" link2="5_Link" reason="AdjacentMount" />
+</robot>

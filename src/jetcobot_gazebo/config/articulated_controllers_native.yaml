@@ -1,0 +1,56 @@
+# Native gear constraints need a physics-rate effort loop.
+controller_manager:
+  ros__parameters:
+    update_rate: 1000
+    enforce_command_limits: true
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+    arm_group_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+    gripper_group_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+joint_state_broadcaster:
+  ros__parameters:
+    use_local_topics: false
+    update_rate: 100
+arm_group_controller:
+  ros__parameters:
+    joints:
+    - 1_Joint
+    - 2_Joint
+    - 3_Joint
+    - 4_Joint
+    - 5_Joint
+    - 6_Joint
+    command_interfaces:
+    - position
+    state_interfaces:
+    - position
+    - velocity
+    allow_nonzero_velocity_at_trajectory_end: false
+    constraints:
+      goal_time: 3.0
+      stopped_velocity_tolerance: 0.05
+gripper_group_controller:
+  ros__parameters:
+    joints:
+    - gripper_controller
+    command_interfaces:
+    - effort
+    state_interfaces:
+    - position
+    - velocity
+    gains:
+      gripper_controller:
+        p: 5.0
+        i: 0.0
+        d: 0.01
+        i_clamp: 0.0
+        u_clamp_min: -0.02
+        u_clamp_max: 0.02
+    constraints:
+      goal_time: 5.0
+      stopped_velocity_tolerance: 0.1
+      gripper_controller:
+        trajectory: 0.4
+        goal: 0.03

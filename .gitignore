@@ -7,3 +7,9 @@ __pycache__/
 .vscode/
 .idea/
 .DS_Store
+
+# Local environments and runtime artifacts
+.venv*/
+core
+core.*
+/physical_grasp_result*.json

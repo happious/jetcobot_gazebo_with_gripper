@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.8)
 project(jetcobot_gazebo)
 find_package(ament_cmake REQUIRED)
-install(DIRECTORY launch config worlds urdf models DESTINATION share/jetcobot_gazebo)
+install(DIRECTORY launch config worlds urdf models DESTINATION share/${PROJECT_NAME})
+install(PROGRAMS scripts/physical_grasp_test.py DESTINATION lib/${PROJECT_NAME})
 ament_package()
