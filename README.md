@@ -36,6 +36,25 @@ source /opt/ros/jazzy/setup.bash
 source ~/jetcobot_ws/install/setup.bash
 ```
 
+## 이미 clone한 저장소 업데이트
+
+기존 작업공간을 새로 clone할 필요 없이 해당 저장소에서 최신 변경을 받고 다시 빌드합니다. `~/jetcobot_ws`는 실제 clone 경로로 바꾸세요. 실행 중인 Gazebo/RViz가 있으면 먼저 종료합니다.
+
+```bash
+cd ~/jetcobot_ws
+git status --short
+git pull --ff-only origin main
+source /opt/ros/jazzy/setup.bash
+rosdep install --from-paths src --ignore-src -y --rosdistro jazzy
+colcon build --base-paths src --symlink-install
+source install/setup.bash
+ros2 pkg prefix jetcobot_gazebo
+```
+
+`ros2 pkg prefix jetcobot_gazebo`가 방금 업데이트한 clone의 `install/jetcobot_gazebo` 아래를 가리키는지 확인하세요. 다른 ROS 작업공간의 setup 파일이 함께 source되어 있으면 이전 모델이나 MoveIt 설정을 불러올 수 있으니 새 터미널에서 ROS와 이 작업공간만 source합니다.
+
+`git status --short`에 로컬 수정이 있으면 pull 전에 commit하거나 stash해 보관하세요. 업데이트 후 수정 사항을 다시 적용할 때 충돌이 생기면 내용을 검토하고 해결한 다음 빌드합니다.
+
 ## 1. 로봇팔만 켜기 — 기본 사용
 
 ```bash
