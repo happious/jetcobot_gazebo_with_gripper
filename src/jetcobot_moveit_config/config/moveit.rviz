@@ -18,7 +18,7 @@ Visualization Manager:
     - Class: rviz_default_plugins/Grid
       Name: Grid
       Value: true
-    - Acceleration_Scaling_Factor: 0.1
+    - Acceleration_Scaling_Factor: 0.5
       Class: moveit_rviz_plugin/MotionPlanning
       Enabled: true
       Move Group Namespace: ""
@@ -117,7 +117,7 @@ Visualization Manager:
       Planning Request:
         Colliding Link Color: 255; 0; 0
         Goal State Alpha: 1
-        Goal State Color: 250; 128; 0
+        Goal State Color: 255; 255; 255
         Interactive Marker Size: 0
         Joint Violation Color: 255; 0; 255
         Planning Group: arm_group
@@ -194,7 +194,7 @@ Visualization Manager:
             Value: true
         Robot Alpha: 0.5
       Value: true
-      Velocity_Scaling_Factor: 0.1
+      Velocity_Scaling_Factor: 0.5
     - Class: rviz_default_plugins/TF
       Enabled: true
       Filter (blacklist): ""

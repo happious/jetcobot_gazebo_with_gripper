@@ -1,61 +1,38 @@
 {
-  "initial_home": {
-    "1_Joint": -2.345374923606869e-06,
-    "2_Joint": -5.4811542213428766e-05,
-    "3_Joint": 6.887919921927388e-12,
-    "4_Joint": -9.172964928438887e-05,
-    "5_Joint": 1.4824662684986833e-05,
-    "6_Joint": -0.7853999733924866
+  "source_tree": "happious/jetcobot_gazebo_with_gripper",
+  "build": {
+    "command": "colcon build --base-paths src --symlink-install",
+    "install_base": "/tmp/jetcobot-gh-install",
+    "packages": [
+      "jetcobot_description",
+      "jetcobot_moveit_config",
+      "jetcobot_gazebo"
+    ],
+    "result": "success"
   },
   "controllers": {
-    "gripper_group_controller": "active",
+    "joint_state_broadcaster": "active",
     "arm_group_controller": "active",
-    "joint_state_broadcaster": "active"
+    "gripper_group_controller": "active"
   },
-  "moves": [
+  "moveit_gripper_group": [
     {
-      "group": "arm_group",
-      "target": {
-        "1_Joint": 0.1,
-        "2_Joint": 0,
-        "3_Joint": 0,
-        "4_Joint": 0,
-        "5_Joint": 0,
-        "6_Joint": -0.7854
-      },
+      "target": -0.83,
       "status": 4,
-      "code": 1
+      "error_code": 1
     },
     {
-      "group": "arm_group",
-      "target": {
-        "1_Joint": 0,
-        "2_Joint": 0,
-        "3_Joint": 0,
-        "4_Joint": 0,
-        "5_Joint": 0,
-        "6_Joint": -0.7854
-      },
+      "target": 0.535,
       "status": 4,
-      "code": 1
-    },
-    {
-      "group": "gripper_group",
-      "target": {
-        "gripper_controller": -0.45
-      },
-      "status": 4,
-      "code": 1
-    },
-    {
-      "group": "gripper_group",
-      "target": {
-        "gripper_controller": 0.12
-      },
-      "status": 4,
-      "code": 1
+      "error_code": 1
     }
   ],
-  "closed_actual": -0.44641733169555664,
-  "open_actual": 0.11575914919376373
+  "final_gripper_state_rad": 0.5303393602371216,
+  "physical_grasp_test": {
+    "success": true,
+    "physics_attachment": false,
+    "lift_mm": 79.8428,
+    "hold_height_range_mm": 0.0301,
+    "release_xy_drift_mm": 0.1439
+  }
 }

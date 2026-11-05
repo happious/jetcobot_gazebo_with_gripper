@@ -74,10 +74,10 @@
   <disable_collisions link1="5_Link" link2="jetcocam" reason="Never" />
   <disable_collisions link1="6_Link" link2="jetcocam" reason="Adjacent" />
   <group_state name="open" group="gripper_group">
-    <joint name="gripper_controller" value="0.12" />
+    <joint name="gripper_controller" value="0.535" />
   </group_state>
   <group_state name="closed" group="gripper_group">
-    <joint name="gripper_controller" value="-0.45" />
+    <joint name="gripper_controller" value="-0.83" />
   </group_state>
   <disable_collisions link1="world" link2="dummy" reason="Adjacent" />
   <disable_collisions link1="dummy" link2="base_link" reason="Adjacent" />

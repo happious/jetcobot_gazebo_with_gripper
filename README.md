@@ -25,7 +25,7 @@ rosdep update
 git clone https://github.com/happious/jetcobot_gazebo_with_gripper.git ~/jetcobot_ws
 cd ~/jetcobot_ws
 rosdep install --from-paths src --ignore-src -y --rosdistro jazzy
-colcon build --symlink-install
+colcon build --base-paths src --symlink-install
 source install/setup.bash
 ```
 
@@ -51,7 +51,7 @@ RViz의 MotionPlanning 패널에서:
 3. Plan으로 경로를 확인한 뒤 Execute를 누릅니다.
 4. 집게는 Planning Group을 `gripper_group`으로 바꾸고 Goal State의 `open` / `closed`를 선택한 뒤 Plan → Execute로 조작합니다.
 
-home은 `[0, 0, 0, 0, 0, -0.7854]` rad입니다. 하드웨어 원점 탐색 기능은 아닙니다. 집게 목표는 open=0.12rad, closed=-0.45rad이며 closed가 간격 0mm를 의미하지는 않습니다. 실제 각도는 접촉과 구동 힘의 영향을 받습니다.
+home은 `[0, 0, 0, 0, 0, -0.7854]` rad입니다. 하드웨어 원점 탐색 기능은 아닙니다. 사양상 최대 벌림폭 약50.5mm를 참고해 사용자 제작 손가락 mesh의 위치와 가동범위를 근사 조정했습니다. 집게 목표는 open=+0.535rad, closed=-0.83rad이며 CAD 치수에 맞춘 검증 모델은 아닙니다.
 
 ## 2. 상자 포함 수동 조작
 
@@ -105,7 +105,8 @@ ros2 topic echo /clock --once
 | 패키지를 찾지 못함 | 빌드 성공과 install/setup.bash source |
 | 다른 모델이 실행됨 | overlay를 정리하고 `ros2 pkg prefix jetcobot_gazebo` 확인 |
 | 컨트롤러 생성 대기 | Gazebo 물리 엔진·gz_ros2_control 오류와 중복 launch 확인 |
-| 집게가 덜 닫힘 | 목표 -0.45rad와 실제 joint_states 비교. 접촉·구동 힘 확인 |
+| 집게가 덜 닫힘 | 목표 -0.83rad와 실제 joint_states 비교. 접촉·구동 힘 확인 |
+| MoveIt이 다른 모델을 읽음 | `ros2 pkg prefix jetcobot_gazebo`와 `ros2 pkg prefix jetcobot_moveit_config`가 현재 clone의 `install/`을 가리키는지 확인하고 다른 overlay를 source하지 않았는지 확인 |
 | Plan 성공, Execute 실패 | controller active, /clock, /joint_states, 중복 명령 확인 |
 | gz.transport13 / gz.msgs10 import 실패 | ROS source와 vendor 패키지 설치 확인. 시스템 python3 사용 |
 | Bullet Featherstone 로딩 실패 | gz-physics-vendor 설치와 ROS/Gazebo 버전 확인 |

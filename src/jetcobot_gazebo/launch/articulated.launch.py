@@ -18,10 +18,11 @@ from moveit_configs_utils import MoveItConfigsBuilder
 
 def setup(context):
     package=Path(share('jetcobot_gazebo'))
+    moveit_package=Path(share('jetcobot_moveit_config'))
     description=Path(share('jetcobot_description'))
     robot=ET.parse(package/'urdf/jetcobot_articulated.urdf').getroot()
     if Arg('initial_home').perform(context).lower() in ('true', '1'):
-        semantic = ET.parse(package/'config/articulated.srdf').getroot()
+        semantic = ET.parse(moveit_package/'config/jetcobot.srdf').getroot()
         for joint in semantic.findall("group_state[@name='home'][@group='arm_group']/joint"):
             initial = robot.find(f"ros2_control/joint[@name='{joint.get('name')}']/state_interface[@name='position']/param[@name='initial_value']")
             if initial is None:
@@ -100,12 +101,12 @@ def setup(context):
     broadcaster=controller('joint_state_broadcaster');arm=controller('arm_group_controller');gripper=controller('gripper_group_controller')
     config=(MoveItConfigsBuilder('jetcobot',package_name='jetcobot_moveit_config')
         .robot_description(file_path=str(package/'urdf/jetcobot_articulated.urdf'))
-        .robot_description_semantic(file_path=str(package/'config/articulated.srdf'))
+        .robot_description_semantic(file_path='config/jetcobot.srdf')
         .to_moveit_configs())
     config.robot_description={'robot_description':text}
-    config.robot_description_semantic={'robot_description_semantic':(package/'config/articulated.srdf').read_text()}
+    config.robot_description_semantic={'robot_description_semantic':(moveit_package/'config/jetcobot.srdf').read_text()}
     config.joint_limits['robot_description_planning']['joint_limits']['gripper_controller']={
-        'has_velocity_limits':True,'max_velocity':.5,'has_acceleration_limits':True,'max_acceleration':1.}
+        'has_velocity_limits':True,'max_velocity':2.0,'has_acceleration_limits':True,'max_acceleration':4.0}
     config.trajectory_execution['moveit_simple_controller_manager']['controller_names'].append('gripper_group_controller')
     config.trajectory_execution['moveit_simple_controller_manager']['gripper_group_controller']={
         'type':'FollowJointTrajectory','joints':['gripper_controller'],

@@ -167,8 +167,8 @@ class PhysicalGraspTest(Node):
             # A contacting box prevents reaching the empty-hand closing angle.
             # Continue holding the final target/effort; success here is NOT the
             # grasp test. Actual contacts and lifted box height decide success.
-            goal.goal_tolerance=[JointTolerance(name='gripper_controller',position=.65,velocity=1.)]
-            goal.path_tolerance=[JointTolerance(name='gripper_controller',position=.65,velocity=2.)]
+            goal.goal_tolerance=[JointTolerance(name='gripper_controller',position=.75,velocity=1.)]
+            goal.path_tolerance=[JointTolerance(name='gripper_controller',position=.75,velocity=2.)]
         else:
             goal.goal_tolerance=[JointTolerance(name='gripper_controller',position=.005,velocity=.1)]
         self.action(self.gripper,goal,True);self.pause(.7)
@@ -221,7 +221,7 @@ class PhysicalGraspTest(Node):
     def run(self):
         self.until(lambda:self.joints is not None and self.box_pose is not None and self.tf.can_transform('world','TCP',rclpy.time.Time()),30)
         initial=self.sample('initial');xyz=[initial['box'][k] for k in ('x','y','z')]
-        self.setup_scene(xyz);self.gripper_to(.145)
+        self.setup_scene(xyz);self.gripper_to(.535)
         z=self.get_parameter('grip_z').value
         selected=None
         for yaw in (math.pi/2,-math.pi/2):
@@ -231,7 +231,7 @@ class PhysicalGraspTest(Node):
                 if 'No full collision-free' not in str(e):raise
         if selected is None:raise RuntimeError('Neither short-side grasp orientation is reachable')
         low,high=selected;self.vertical(low,'Descend with gripper open');self.sample('at_grasp_open')
-        self.gripper_to(-.45,True);self.sample('closed')
+        self.gripper_to(-.83,True);self.sample('closed')
         try:self.until(self.bilateral,3)
         except TimeoutError:raise RuntimeError('Bilateral finger contact was not established; refusing to lift')
         lifted=deepcopy(low);lifted.position.z+=self.get_parameter('lift_m').value
@@ -259,7 +259,7 @@ class PhysicalGraspTest(Node):
         if any(h.get('depth_count',0)==0 for sample in samples for contact in sample['contacts'].values() for h in contact.get('hits',[])):raise RuntimeError('Missing depth data in contact measurement')
         if max(depths)>.003:validation_errors.append('Excessive finger/object penetration (>3mm)')
         self.vertical(low,'Lower to original surface');self.sample('lowered')
-        self.gripper_to(.145);self.sample('released')
+        self.gripper_to(.535);self.sample('released')
         def release_ready():
             with self.lock:pose=deepcopy(self.box_pose)
             qx,qy,_,_=pose['q']

@@ -2,3 +2,5 @@ moveit_setup_assistant_config:
   urdf:
     package: jetcobot_gazebo
     relative_path: urdf/jetcobot_articulated.urdf
+  srdf:
+    relative_path: config/jetcobot.srdf

@@ -19,7 +19,7 @@
 | src/jetcobot_description/meshes | 원본 팔·카메라 메시 자산. URDF/기존 display launch는 제거 |
 | src/jetcobot_moveit_config/config | kinematics, joint_limits, moveit_controllers, RViz, Pilz 설정 |
 | src/jetcobot_gazebo/urdf/jetcobot_articulated.urdf | 배포본의 유일한 URDF. fixed base + 움직이는 집게 + ros2_control |
-| config/articulated.srdf | 팔·집게 그룹, 저장 자세, end effector, self collision 예외 |
+| src/jetcobot_moveit_config/config/jetcobot.srdf | 팔·집게 그룹, 저장 자세, end effector, self collision 예외 |
 | config/articulated_controllers_native.yaml | 기본 native coupling용 effort PD 제어 |
 | config/articulated_controllers.yaml | native_mimic=false 대체 경로. 반복 안정 파지 검증 대상 아님 |
 | models/articulated_gripper_meshes/*.stl | m 단위로 정규화된 집게 visual/collision 메시 |
@@ -39,11 +39,11 @@
 4. 컨트롤러 YAML 절대 경로를 런타임 URDF에 넣는다. `gz sdf -p`로 SDF를 생성한다.
 5. gripper 링크 충돌 메시에는 convex_decomposition(max 16 hull, 200000 voxel)을 지정한다. 좌우 손가락에 물리 contact 센서를 추가한다.
 6. Gazebo와 robot_state_publisher, /clock bridge, create를 시작한다. create → joint_state_broadcaster → arm controller → gripper controller 성공 순서로 활성화하고 그 후 move_group/RViz를 시작한다.
-7. MoveItConfigsBuilder는 이 물리 URDF와 articulated.srdf를 명시적으로 읽는다. Gazebo와 같은 런타임 robot_description을 MoveIt/RViz에 전달한다. 추가 fake hardware나 다른 demo.launch를 같이 띄우지 않는다.
+7. MoveItConfigsBuilder가 `.setup_assistant`에서 URDF 패키지/경로와 `config/jetcobot.srdf`를 읽는다. launch는 ament index로 설치 경로를 찾고, Gazebo와 같은 런타임 robot_description을 MoveIt/RViz에 전달한다. 추가 fake hardware나 다른 demo.launch를 같이 띄우지 않는다.
 
 기본 인자: physics_engine=gz-physics-bullet-featherstone-plugin, native_mimic=true, gui=true, moveit=true, rviz=true, initial_home=true. 두 wrapper는 gui/rviz/world만 공개하며 moveit=true, initial_home=true를 전달한다. 다른 저수준 옵션은 articulated.launch.py를 직접 사용한다.
 
-world→dummy는 fixed이며 높이는 0.1m, dummy→base_link도 fixed다. 모델 전체를 static으로 만들면 관절이 움직이지 않으므로 그렇게 바꾸지 않는다. home=[0,0,0,0,0,-0.7854]rad. gripper 초기값은 ±0.12rad로 mimic 부호에 맞춘다.
+world→dummy는 fixed이며 높이는 0.1m, dummy→base_link도 fixed다. 모델 전체를 static으로 만들면 관절이 움직이지 않으므로 그렇게 바꾸지 않는다. home=[0,0,0,0,0,-0.7854]rad. 2026-11-05 사용자 제공 사양(벌림폭 약50.5mm)을 바탕으로 손가락 mesh 위치와 gripper travel을 CAD 없이 근사 조정했다. gripper 시작/open=+0.535rad, closed=-0.83rad; mimic 부호는 좌우 링크별로 지정한다.
 
 ## MoveIt·제어 인터페이스
 
@@ -51,7 +51,7 @@ world→dummy는 fixed이며 높이는 0.1m, dummy→base_link도 fixed다. 모�
 - group `gripper_group`: `gripper_controller`와 다섯 mimic 관절. 독립 구동 축은 하나.
 - end effector `gripper`, parent_link `6_Link`.
 - 저장 팔 자세: home, ready_to_see, ready_to_grab, scan_front, scan_left, scan_right.
-- 저장 집게 자세: open=0.12rad, closed=-0.45rad. URDF 허용 범위 -0.5~0.15rad. 간격 0mm를 보장하는 이름이 아니다. 시험에서는 여유 있는 개방을 위해 0.145rad 사용.
+- 저장 집게 자세: open=+0.535rad, closed=-0.83rad. URDF active-joint 허용 범위 -0.83~+0.535rad. CAD 기반 검증은 아니며 실제 접촉 간격은 대조가 필요하다.
 - 팔 action: `/arm_group_controller/follow_joint_trajectory` (control_msgs/action/FollowJointTrajectory), position 제어.
 - 집게 action: `/gripper_group_controller/follow_joint_trajectory`, effort 기반 trajectory 제어. MoveIt controller 목록에 launch에서 추가한다.
 - 상태: `/joint_states`, `/clock`, TF world→TCP. 시뮬레이션 노드에 use_sim_time=true 적용.
@@ -67,8 +67,10 @@ world→dummy는 fixed이며 높이는 0.1m, dummy→base_link도 fixed다. 모�
 - 기존 DAE는 Gazebo/MoveIt 로더에서 단위 처리가 달랐다. 집게 STL은 m로 정규화했다. TCP는 손가락 두께·간격 중심 기준 (-0.0006074,0.055,-0.0082)m.
 - triangle mesh 기본 margin 10mm가 작은 집게를 침범한 이력이 있어 convex hull의 1mm margin 경로를 사용한다. [해당 gz-physics 소스](https://github.com/gazebosim/gz-physics/blob/gz-physics7_7.8.0/bullet-featherstone/src/SDFFeatures.cc)를 참조한다.
 - 최대 메시 벌림 약 43mm이며 40mm 상자는 물리 margin까지 고려하면 여유가 작다. 30mm 상자의 성공을 40mm로 일반화하지 않는다.
-- 집게 STL에는 원래 DAE 재질이 없어 팔과 표시 색이 다를 수 있다.
+- 집게 STL에는 DAE 재질 정보가 없어 URDF visual을 팔과 같은 흰색으로 지정한다. RViz의 goal state color도 흰색이다. MoveIt 그리퍼 제한은 2rad/s, 4rad/s²이며 RViz 속도·가속도 scale은 기본 0.5다.
 - 수동 월드의 Gazebo 물체는 MoveIt collision scene에 자동 복사되지 않는다. 물체 추가·크기 변경 시 planning scene도 함께 관리해야 한다.
+
+닫기 목표가 상자에 막혀도 접촉 파지 판정을 수행할 수 있도록 닫기 action tolerance를 0.75rad로 둔다. action 종료만으로 파지 성공을 판단하지 않으며 실제 양측 접촉·상승·유지·해제 기준을 별도로 검사한다.
 
 ## 픽업 코드 상세
 
@@ -91,8 +93,8 @@ world→dummy는 fixed이며 높이는 0.1m, dummy→base_link도 fixed다. 모�
 run 순서:
 
 1. joint/실제 상자 pose/TF 대기 → initial sample → planning scene 구성.
-2. 집게 0.145rad 개방. yaw=±π/2 중 도달 가능한 방향을 찾아 상자 위 120mm로 접근한 뒤 grip_z까지 하강.
-3. -0.45rad 닫기. 상자에 막혀 목표각에 못 가는 경우를 허용하되 실제 양측 접촉이 없으면 상승하지 않는다.
+2. 집게 +0.535rad 개방. yaw=±π/2 중 도달 가능한 방향을 찾아 상자 위 120mm로 접근한 뒤 grip_z까지 하강.
+3. -0.83rad 닫기. 상자에 막혀 목표각에 못 가는 경우를 허용하되 실제 양측 접촉이 없으면 상승하지 않는다.
 4. 80mm 상승, 0.5초 간격 5개 유지 sample. 실제 높이·접촉·관절 연동·기울기·침투 깊이 검사.
 5. 원래 높이로 하강하고 개방. 상자 실제 중심/yaw에 손을 정렬한다. 양측 접촉 깊이 차이로 1회 최대 0.5mm, 축별 누적 ±2mm의 중심 보정을 최대 8회 수행한다.
 6. 상자가 초기 바닥 높이 ±0.5mm, tilt<1도이며 양수 침투 접촉이 없어야 후퇴한다. 음수 깊이는 분리된 근접점이므로 겹침으로 판정하지 않는다.
@@ -104,6 +106,6 @@ run 순서:
 
 ## 검증 이력과 수정 시 확인
 
-원 작업공간 기록(2026-11-03): 최종 30mm 상자 설정은 새 월드 2회 전체 통과. 최소 상승 79.57mm, 최대 tilt 0.40도, 최대 유지 높이 변화 0.205mm, 최대 침투 0.120mm, 해제 후 최대 수평 이동 0.214mm. 원본 상세 로그는 배포하지 않으며 이번 정리본의 재실행 결과와 혼동하지 않는다. DART, 큰 margin, 40mm 상자의 이전 성공 표시는 현재 반복 안정성의 근거가 아니다.
+원 작업공간 기록(2026-11-03): 30mm 상자 새 월드 2회 전체 통과. 2026-11-05 업데이트 모델은 배포 저장소에서 새 isolated build 후 MoveIt 집게 open/closed 실행과 물리 픽업 1회 통과했다. 이번 결과는 docs/VALIDATION.md 및 docs/verification/에 보존했으며 반복 안정성 근거는 아니다. DART, 큰 margin, 40mm 상자의 과거 성공 표시는 현재 반복 안정성의 근거가 아니다.
 
 수정 후에는 다른 overlay가 없는 환경에서 세 패키지를 빌드하고 robot_only/grasp_test의 스폰·컨트롤러·home을 확인한다. 팔/집게 MoveIt 실행과 새 월드 자동 픽업은 별도 확인한다. GUI를 확인하지 못했다면 headless 검증만으로 GUI 통과를 주장하지 않는다. 최신 배포 검증 범위는 docs/VALIDATION.md에 기록한다.
