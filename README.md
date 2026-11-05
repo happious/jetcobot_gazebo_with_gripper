@@ -72,22 +72,6 @@ RViz의 MotionPlanning 패널에서:
 
 home은 `[0, 0, 0, 0, 0, -0.7854]` rad입니다. 하드웨어 원점 탐색 기능은 아닙니다. 사양상 최대 벌림폭 약50.5mm를 참고해 사용자 제작 손가락 mesh의 위치와 가동범위를 근사 조정했습니다. 집게 목표는 open=+0.535rad, closed=-0.83rad이며 CAD 치수에 맞춘 검증 모델은 아닙니다.
 
-## 두 로봇 나란히 실행 — dual arm
-
-```bash
-ros2 launch jetcobot_gazebo dual_arm.launch.py
-```
-
-두 팔이 Gazebo에서 같은 방향을 보고 Y축으로 40cm 떨어져 시작합니다. Gazebo DART 물리 엔진을 사용합니다. Bullet Featherstone은 한 모델 안의 두 관절 트리 구성을 지원하지 않아 이 launch에는 사용하지 않습니다. MoveIt/RViz에는 `arm_left`, `arm_right`, `both_arms` planning group이 보이고, 네 개 팔/그리퍼 controller가 연결됩니다. `both_arms`를 선택하면 두 팔을 한 MoveIt 계획으로 함께 계획할 수 있습니다. 팔 사이 충돌 쌍은 SRDF에서 끄지 않아 계획 시 충돌 검사에 포함됩니다.
-
-처음에는 GUI 없이 기동 상태만 확인할 수도 있습니다.
-
-```bash
-ros2 launch jetcobot_gazebo dual_arm.launch.py gui:=false rviz:=false
-```
-
-시작 자세는 양쪽 팔 관절이 0 rad이고 집게가 열린 자세입니다. 이 월드에는 두 로봇 받침대만 있으며, 공유 테이블·바구니 충돌체는 아직 포함하지 않았습니다. 따라서 MoveIt의 충돌 회피는 두 팔 모델끼리만 확인합니다. 실물 두 대의 상태 연결이나 하드웨어 제어 launch가 아닙니다.
-
 ## 2. 상자 포함 수동 조작
 
 기존 launch를 Ctrl+C로 종료한 뒤 실행합니다.
